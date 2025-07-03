@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import dj_database_url
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -35,19 +36,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # secret do render = _(ci9_($9wn%kpl*$rt*fat=emj!^wq1051=2c4f%2&!di=*f$  
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG=1 no .env para desenvolvimento
-DEBUG = os.environ('DEBUG', '0') == '1'
+DEBUG = os.environ.get('DEBUG', '0') == '1'
 
 # Se o debug estiver ativado a chave usada é a de desenvolvimento
 if not SECRET_KEY and DEBUG:
     SECRET_KEY = 'django-insecure-kcu91q3x4)+4s0g!^-@6^!av+*4=6n@1!o=3o(dd+h&8v1w4id'
 
-ALLOWED_HOSTS = os.environ('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
 
 
 # Application definition
