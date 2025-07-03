@@ -35,12 +35,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-kcu91q3x4)+4s0g!^-@6^!av+*4=6n@1!o=3o(dd+h&8v1w4id'
+SECRET_KEY = os.environ('SECRET_KEY')
+
+# secret do render = _(ci9_($9wn%kpl*$rt*fat=emj!^wq1051=2c4f%2&!di=*f$  
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG=1 no .env para desenvolvimento
+DEBUG = os.environ('DEBUG', '0') == '1'
 
-ALLOWED_HOSTS = []
+# Se o debug estiver ativado a chave usada é a de desenvolvimento
+if not SECRET_KEY and DEBUG:
+    SECRET_KEY = 'django-insecure-kcu91q3x4)+4s0g!^-@6^!av+*4=6n@1!o=3o(dd+h&8v1w4id'
+
+ALLOWED_HOSTS = os.environ('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
 
 
 # Application definition
@@ -51,12 +58,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'login',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,10 +99,10 @@ WSGI_APPLICATION = 'alocai.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
 
 
@@ -119,9 +128,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
@@ -132,6 +141,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# Local onde o collectstatic vai juntar todos os arquivos estáticos para produção
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Configuração para o Whitenoise encontrar e servir os arquivos de forma eficiente
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
