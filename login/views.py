@@ -27,39 +27,32 @@ def sign_in(request):
 
 @csrf_exempt
 def auth_receiver(request):
-    print("--- [auth_receiver] A view foi chamada. ---")
+    """
+    URL chamada pelo Google depois que o usuário faz login com sucesso.
+    Essa view verifica o token e cria a sessão do usuário.
+    """
+    token = request.POST.get('credential')
+
+    if not token:
+        # Se o Google não enviar a credencial
+        return HttpResponse(status=400, content="Credential POST data not found.")
+
     try:
-        token = request.POST.get('credential')
-        if not token:
-            print("ERRO: Credencial não encontrada no POST.")
-            return HttpResponse("Credential POST data not found.", status=400)
-        print("--- [auth_receiver] Token recebido com sucesso. ---")
-
-        # PASSO CORRIGIDO: Usando .get() e verificando se a chave existe
         client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
-        if not client_id:
-            print("ERRO CRÍTICO: GOOGLE_OAUTH_CLIENT_ID não está definido no ambiente do Render.")
-            return HttpResponse("Server configuration error: Missing Client ID.", status=500)
-        print("--- [auth_receiver] Client ID do ambiente lido com sucesso. ---")
-
-        print("--- [auth_receiver] Tentando verificar o token com o Google...")
+        
+        # Verifica se o token é válido
         user_data = id_token.verify_oauth2_token(
             token, requests.Request(), client_id
         )
-        print("--- [auth_receiver] Token verificado com sucesso! Email:", user_data.get('email'))
+    except ValueError:
+        # Se o token for inválido
+        return HttpResponse(status=403) # 403 Forbidden é apropriado aqui
 
-        request.session['user_data'] = user_data
-        print("--- [auth_receiver] Dados salvos na sessão. Redirecionando...")
-        return redirect('sign_in')
+    # Se o token for válido, os dados de usuário são salvos na sessão do Django
+    request.session['user_data'] = user_data
 
-    except Exception as e:
-        # Pega QUALQUER exceção, imprime o erro detalhado e retorna 500
-        print(f"!!!!!!!!!! ERRO INESPERADO EM AUTH_RECEIVER !!!!!!!!!!")
-        print(f"Tipo do Erro: {type(e).__name__}")
-        print(f"Mensagem do Erro: {e}")
-        traceback.print_exc() # Imprime o traceback completo no log
-        print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        return HttpResponse("An unexpected error occurred.", status=500)
+    # Redireciona o usuário de volta para a página inicial, que agora o mostrará logado.
+    return redirect('sign_in')
 
 def sign_out(request):
     if 'user_data' in request.session:
