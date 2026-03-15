@@ -1,0 +1,1 @@
+from alocai.wsgi import app
