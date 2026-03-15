@@ -1,15 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "alocai/wsgi.py",
-      "use": "@vercel/python"
+  "buildCommand": "./build.sh",
+  "outputDirectory": "staticfiles",
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python@6.23.0",
+      "memory": 512,
+      "maxDuration": 10
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "alocai/wsgi.py"
+      "dest": "api/index.py"
     }
   ]
 }
